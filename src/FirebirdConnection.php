@@ -6,6 +6,7 @@ use Exception;
 use Firebird\Query\Builder as FirebirdQueryBuilder;
 use Firebird\Query\Grammars\Firebird1Grammar as Firebird1QueryGrammar;
 use Firebird\Query\Grammars\Firebird2Grammar as Firebird2QueryGrammar;
+use Firebird\Query\Processors\FirebirdProcessor as Processor;
 use Firebird\Schema\Builder as FirebirdSchemaBuilder;
 use Firebird\Schema\Grammars\FirebirdGrammar as FirebirdSchemaGrammar;
 use Firebird\Support\Version;
@@ -25,7 +26,19 @@ class FirebirdConnection extends DatabaseConnection
                 return new Firebird1QueryGrammar;
             case Version::FIREBIRD_25:
                 return new Firebird2QueryGrammar;
+            case Version::FIREBIRD_30:
+                return new Firebird3QueryGrammar;
         }
+    }
+
+    /**
+     * Get the default post processor instance.
+     *
+     * @return \Firebird\Query\Processors\FirebirdProcessor
+     */
+    protected function getDefaultPostProcessor()
+    {
+        return new Processor;
     }
 
     /**
@@ -65,6 +78,18 @@ class FirebirdConnection extends DatabaseConnection
     }
 
     /**
+     * Execute stored function
+     *
+     * @param string $function
+     * @param array $values
+     * @return mixed
+     */
+    public function executeFunction($function, array $values = null)
+    {
+        return $this->query()->executeFunction($function, $values)->get();
+    }
+
+    /**
      * Execute a stored procedure.
      *
      * @param string $procedure
@@ -94,5 +119,47 @@ class FirebirdConnection extends DatabaseConnection
         }
 
         return $this->config['version'];
+    }
+
+    /**
+     * Start a new database transaction.
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function beginTransaction()
+    {
+        if ($this->transactions == 0 && $this->pdo->getAttribute(PDO::ATTR_AUTOCOMMIT) == 1) {
+            $this->pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 0);
+        }
+        parent::beginTransaction();
+    }
+
+    /**
+     * Commit the active database transaction.
+     *
+     * @return void
+     */
+    public function commit()
+    {
+        parent::commit();
+        if ($this->transactions == 0 && $this->pdo->getAttribute(PDO::ATTR_AUTOCOMMIT) == 0) {
+            $this->pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 1);
+        }
+    }
+
+    /**
+     * Rollback the active database transaction.
+     *
+     * @param int|null $toLevel
+     * @return void
+     * @throws \Exception
+     */
+    public function rollBack($toLevel = null)
+    {
+        parent::rollBack($toLevel);
+        if ($this->transactions == 0 && $this->pdo->getAttribute(PDO::ATTR_AUTOCOMMIT) == 0) {
+            $this->pdo->setAttribute(PDO::ATTR_AUTOCOMMIT, 1);
+        }
     }
 }

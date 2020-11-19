@@ -2,6 +2,7 @@
 
 namespace Firebird;
 
+use Doctrine\Instantiator\Exception\InvalidArgumentException;
 use Illuminate\Database\Connectors\Connector;
 use Illuminate\Database\Connectors\ConnectorInterface;
 
@@ -23,34 +24,34 @@ class FirebirdConnector extends Connector implements ConnectorInterface
     }
 
     /**
-     * Create a DSN string from the configuration.
+     * Create a DSN string from a configuration.
      *
-     * @param  array   $config
+     * @param array $config
      * @return string
      */
     protected function getDsn(array $config)
     {
-        extract($config);
-
-        if (! isset($host) || ! isset($database)) {
-            trigger_error('Cannot connect to Firebird Database, no host or database supplied');
+        $dsn = '';
+        if (isset($config['host'])) {
+            $dsn .= $config['host'];
         }
-
-        $dsn = "firebird:dbname={$host}";
-
-        if (isset($port)) {
-            $dsn .= "/{$port}";
+        if (isset($config['port'])) {
+            $dsn .= "/" . $config['port'];
         }
-
-        $dsn .= ":{$database};";
-
-        if (isset($role)) {
-            $dsn .= "role={$role};";
+        if (!isset($config['database'])) {
+            throw new InvalidArgumentException("Database not given, required.");
         }
-
-        if (isset($charset)) {
-            $dsn .= "charset={$charset};";
+        if ($dsn) {
+            $dsn .= ':';
         }
+        $dsn .= $config['database'] . ';';
+        if (isset($config['charset'])) {
+            $dsn .= "charset=" . $config['charset'];
+        }
+        if (isset($config['role'])) {
+            $dsn .= ";role=" . $config['role'];
+        }
+        $dsn = 'firebird:dbname=' . $dsn;
 
         return $dsn;
     }
