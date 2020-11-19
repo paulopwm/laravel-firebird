@@ -1,5 +1,5 @@
 {
-    "name": "harrygulliford/laravel-firebird",
+    "name": "paulopwm/laravel-firebird",
     "description": "Firebird database driver for the Laravel Framework",
     "license": "MIT",
     "require": {

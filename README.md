@@ -1,17 +1,17 @@
 # Firebird for Laravel
 
-[![Latest Stable Version](https://poser.pugx.org/harrygulliford/laravel-firebird/v/stable)](https://packagist.org/packages/harrygulliford/laravel-firebird)
-[![Total Downloads](https://poser.pugx.org/harrygulliford/laravel-firebird/downloads)](https://packagist.org/packages/harrygulliford/laravel-firebird)
-[![License](https://poser.pugx.org/harrygulliford/laravel-firebird/license)](https://packagist.org/packages/harrygulliford/laravel-firebird)
+[![Latest Stable Version](https://poser.pugx.org/paulopwm/laravel-firebird/v/stable)](https://packagist.org/packages/paulopwm/laravel-firebird)
+[![Total Downloads](https://poser.pugx.org/paulopwm/laravel-firebird/downloads)](https://packagist.org/packages/paulopwm/laravel-firebird)
+[![License](https://poser.pugx.org/paulopwm/laravel-firebird/license)](https://packagist.org/packages/paulopwm/laravel-firebird)
 
-This package adds support for the Firebird PDO driver in Laravel applications. Support for Laravel 5.5 to 8.x with PHP 7.1+ and Firebird 1.5 or 2.5
+This package adds support for the Firebird PDO driver in Laravel applications. Support for Laravel 5.5 to 8.x with PHP 7.1+ and Firebird 1.5 or 2.5 or 3.0
 
 ## Installation
 
 You can install the package via composer:
 
 ```json
-composer require harrygulliford/laravel-firebird
+composer require paulopwm/laravel-firebird
 ```
 
 _The package will automatically register itself._
@@ -28,7 +28,7 @@ driver:
         'username' => env('DB_USERNAME', 'sysdba'),
         'password' => env('DB_PASSWORD', 'masterkey'),
         'charset'  => env('DB_CHARSET', 'UTF8'),
-        'version'  => env('DB_VERSION', '2.5'), // Supported versions: 2.5, 1.5
+        'version'  => env('DB_VERSION', '2.5'), // Supported versions: 3.0, 2.5, 1.5
         'role'     => null,
     ],
 
