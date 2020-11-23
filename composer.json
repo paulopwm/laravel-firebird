@@ -18,13 +18,8 @@
         "exclude": ["/tests"]
     },
     "autoload":{
-        "psr-4": {
+        "psr-0": {
             "Firebird\\": "src/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Firebird\\Tests\\": "tests/"
         }
     },
     "extra": {

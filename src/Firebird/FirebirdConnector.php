@@ -5,22 +5,29 @@ namespace Firebird;
 use Doctrine\Instantiator\Exception\InvalidArgumentException;
 use Illuminate\Database\Connectors\Connector;
 use Illuminate\Database\Connectors\ConnectorInterface;
+use PDO;
 
 class FirebirdConnector extends Connector implements ConnectorInterface
 {
+
     /**
      * Establish a database connection.
      *
-     * @param  array  $config
-     * @return \PDO
+     * @param array $config
+     * @return PDO
      */
     public function connect(array $config)
     {
-        return $this->createConnection(
-            $this->getDsn($config),
-            $config,
-            $this->getOptions($config)
-        );
+        $dsn = $this->getDsn($config);
+
+        $options = $this->getOptions($config);
+
+        // We need to grab the PDO options that should be used while making the brand
+        // new connection instance. The PDO options control various aspects of the
+        // connection's behavior, and some might be specified by the developers.
+        $connection = $this->createConnection($dsn, $config, $options);
+
+        return $connection;
     }
 
     /**
@@ -55,4 +62,5 @@ class FirebirdConnector extends Connector implements ConnectorInterface
 
         return $dsn;
     }
+
 }

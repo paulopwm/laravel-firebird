@@ -1,48 +1,154 @@
-# Firebird for Laravel
+laravel-firebird
+================
 
-[![Latest Stable Version](https://poser.pugx.org/paulopwm/laravel-firebird/v/stable)](https://packagist.org/packages/paulopwm/laravel-firebird)
-[![Total Downloads](https://poser.pugx.org/paulopwm/laravel-firebird/downloads)](https://packagist.org/packages/paulopwm/laravel-firebird)
-[![License](https://poser.pugx.org/paulopwm/laravel-firebird/license)](https://packagist.org/packages/paulopwm/laravel-firebird)
+To use this package:
 
-This package adds support for the Firebird PDO driver in Laravel applications. Support for Laravel 5.5 to 8.x with PHP 7.1+ and Firebird 1.5 or 2.5 or 3.0
+Installation
+------------
 
-## Installation
+Install the Firebird PDO driver for PHP.
 
-You can install the package via composer:
+Mariuz's Blog has a very good step by step on this:
+http://mapopa.blogspot.com/2009/04/php5-and-firebird-pdo-on-ubuntu-hardy.html
 
-```json
-composer require paulopwm/laravel-firebird
-```
+Install using composer:
 
-_The package will automatically register itself._
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ json
+composer require sim1984/laravel-firebird
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Declare the connection within your `config/database.php` file, using `firebird` as the
-driver:
-```php
-'connections' => [
+Update the `app/config/app.php`, add the service provider:
 
-    'firebird' => [
-        'driver'   => 'firebird',
-        'host'     => env('DB_HOST', 'localhost'),
-        'database' => env('DB_DATABASE', '/path_to/database.fdb'),
-        'username' => env('DB_USERNAME', 'sysdba'),
-        'password' => env('DB_PASSWORD', 'masterkey'),
-        'charset'  => env('DB_CHARSET', 'UTF8'),
-        'version'  => env('DB_VERSION', '2.5'), // Supported versions: 3.0, 2.5, 1.5
-        'role'     => null,
-    ],
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ json
+'Firebird\FirebirdServiceProvider'.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+For Laravel 5.7 and later:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ php
+Firebird\FirebirdServiceProvider::class,
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can remove the original DatabaseServiceProvider, as the original connection
+factory has also been extended.
+
+Declare your connection in the database config, using 'firebird' as the
+connecion type. Other keys that are needed:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ php
+'firebird' => [
+    'driver'   => 'firebird',
+    'host'     => env('DB_HOST', 'localhost'),
+    'database' => env('DB_DATABASE','/storage/firebird/APPLICATION.FDB'),
+    'username' => env('DB_USERNAME', 'sysdba'),
+    'password' => env('DB_PASSWORD', 'masterkey'),
+    'charset'  => env('DB_CHARSET', 'UTF8'),
+    'role'     => 'RDB$ADMIN',
+    'engine_version' => '3.0.4',
 ],
-```
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To register this package in Lumen, you'll also need to add the following line to the service providers in your `config/app.php` file:
-`$app->register(\Firebird\FirebirdServiceProvider::class);`
+And add to your .env
 
-## Limitations
-This package does not support database migrations and it should not be used for this use case.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+DB_CHARSET=UTF8
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-## Credits
-This package was originally forked from [acquestvanzuydam/laravel-firebird](https://github.com/jacquestvanzuydam/laravel-firebird) with enhancements from [sim1984/laravel-firebird](https://github.com/sim1984/laravel-firebird).
+If necessary, change the UTF8 to any other charset
 
-## License
-Licensed under the [MIT](https://choosealicense.com/licenses/mit/) licence.
+This package is a branch jacquestvanzuydam/laravel-firebird package and extends
+its functionality. Tested on Laravel-5.7.
+
+Added the following features:
+
+-   Added support for direct control sequences in
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ php
+        // CREATE SEQUENCE "seq_users_id"
+        Schema::createSequence('seq_users_id');
+
+        // ALTER SEQUENCE "seq_users_id" RESTART WITH 10 INCREMENT BY 5
+        Schema::sequence('seq_users_id', function (SequenceBlueprint $sequence) {
+            $sequence->increment(5);
+            $sequence->restart(10);
+        });
+
+        // DROP SEQUENCE "seq_users_id"
+        Schema::dropSequence('seq_users_id');
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   The implementation of auto-increment columns in two ways:
+
+-   through the automatic generation of sequences and before insert trigger
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ php
+        // CREATE TABLE "users" (
+        //   "id"              INTEGER NOT NULL PRIMARY KEY,
+        //   "name"            VARCHAR(255) NOT NULL,
+        //   "email"           VARCHAR(255) NOT NULL,
+        //   "password"        VARCHAR(255) NOT NULL,
+        //   "remember_token"  VARCHAR(100),
+        //   "created_at"      TIMESTAMP,
+        //   "updated_at"      TIMESTAMP
+        // );
+        // ALTER TABLE "users" ADD PRIMARY KEY ("id");
+        // ALTER TABLE "users" ADD CONSTRAINT "users_email_unique" UNIQUE ("email");
+        // CREATE SEQUENCE "seq_users";
+        // CREATE OR ALTER TRIGGER "tr_users_bi" FOR "users"
+        // ACTIVE BEFORE INSERT
+        // AS
+        // BEGIN
+        //   IF (NEW."id" IS NULL) THEN
+        //     NEW."id" = NEXT VALUE FOR "seq_users";
+        // END
+        Schema::create('users', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->rememberToken();
+            $table->timestamps();
+        });
+
+        // DROP TABLE "users";
+        // DROP SEQUENCE "seq_users";
+        Schema::drop('users');
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   using identity fields (only in Firebird 3.0).
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ php
+        // CREATE TABLE "users" (
+        //   "id"              INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+        //   "name"            VARCHAR(255) NOT NULL,
+        //   "email"           VARCHAR(255) NOT NULL,
+        //   "password"        VARCHAR(255) NOT NULL,
+        //   "remember_token"  VARCHAR(100),
+        //   "created_at"      TIMESTAMP,
+        //   "updated_at"      TIMESTAMP
+        // );
+        // ALTER TABLE "users" ADD CONSTRAINT "users_email_unique" UNIQUE ("email");
+        Schema::create('users', function (Blueprint $table) {
+            $table->useIdentity(); // only Firebird 3.0
+            $table->increments('id');
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('password');
+            $table->rememberToken();
+            $table->timestamps();
+        });  
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+-   The implementation of InsertGetId method is similar to the postgres, ie
+    using RETURNING proposal.
+
+-   Create your own base model class in which insertAndSetId method is
+    implemented through the prior receipt by the sequence identifier.
+
+-   Added additional methods for the execution of stored procedures and stored
+    functions.
+
+-   Added Providing the connection parameters: the name of the role and Firebird
+    version (to use the correct grammar).
+
+ 

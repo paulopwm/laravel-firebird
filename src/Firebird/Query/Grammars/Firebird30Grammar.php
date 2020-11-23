@@ -4,7 +4,7 @@ namespace Firebird\Query\Grammars;
 
 use Illuminate\Database\Query\Builder;
 
-class Firebird3Grammar extends Firebird2Grammar
+class Firebird30Grammar extends Firebird25Grammar
 {
 
     /**

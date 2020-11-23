@@ -2,10 +2,11 @@
 
 namespace Firebird\Query;
 
-use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Database\Query\Builder as BaseBuilder;
 
-class Builder extends QueryBuilder
+class Builder extends BaseBuilder
 {
+
     /**
      * Get context variable value
      *
@@ -72,19 +73,4 @@ class Builder extends QueryBuilder
         return $this->processor->processExecuteFunction($this, $sql, $values);
     }
 
-    /**
-     * Add a from stored procedure clause to the query builder.
-     *
-     * @param string $procedure
-     * @param array $values
-     * @return \Illuminate\Database\Query\Builder|static
-     */
-    public function fromProcedure(string $procedure, array $values = [])
-    {
-        $compiledProcedure = $this->grammar->compileProcedure($this, $procedure, $values);
-
-        $this->fromRaw($compiledProcedure, array_values($values));
-
-        return $this;
-    }
 }
