@@ -36,10 +36,11 @@ class Firebird30Grammar extends Firebird25Grammar
      */
     protected function compileLimit(Builder $query, $limit)
     {
-        if ($limit)
+        if ($limit) {
             return 'fetch first ' . (int)$limit . ' rows only';
-        else
-            return null;
+        }
+
+        return null;
     }
 
     /**
@@ -53,9 +54,9 @@ class Firebird30Grammar extends Firebird25Grammar
     {
         if ($offset) {
             return 'offset ' . (int)$offset . ' rows';
-        } else {
-            return null;
         }
+
+        return null;
     }
 
 }
