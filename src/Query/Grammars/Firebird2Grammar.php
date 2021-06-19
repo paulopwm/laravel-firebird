@@ -16,6 +16,7 @@ class Firebird2Grammar extends Grammar
         '=', '<', '>', '<=', '>=', '<>', '!=',
         'like', 'not like', 'between', 'containing', 'starting with',
         'similar to', 'not similar to',
+        'is distinct from', 'is not distinct from',
     ];
 
     /**

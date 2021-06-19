@@ -24,6 +24,7 @@ driver:
     'firebird' => [
         'driver'   => 'firebird',
         'host'     => env('DB_HOST', 'localhost'),
+        'port'     => env('DB_PORT', '3050'),
         'database' => env('DB_DATABASE', '/path_to/database.fdb'),
         'username' => env('DB_USERNAME', 'sysdba'),
         'password' => env('DB_PASSWORD', 'masterkey'),
@@ -42,7 +43,7 @@ To register this package in Lumen, you'll also need to add the following line to
 This package does not support database migrations and it should not be used for this use case.
 
 ## Credits
-This package was originally forked from [acquestvanzuydam/laravel-firebird](https://github.com/jacquestvanzuydam/laravel-firebird) with enhancements from [sim1984/laravel-firebird](https://github.com/sim1984/laravel-firebird).
+This package was originally forked from [jacquestvanzuydam/laravel-firebird](https://github.com/jacquestvanzuydam/laravel-firebird) with enhancements from [sim1984/laravel-firebird](https://github.com/sim1984/laravel-firebird).
 
 ## License
 Licensed under the [MIT](https://choosealicense.com/licenses/mit/) licence.
